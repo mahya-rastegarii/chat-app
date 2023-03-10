@@ -5,6 +5,7 @@ import { BrowserRouter , Routes , Route, Navigate  } from "react-router-dom"
 import HomePage from "./Page/Home"
 import LoginPage from "./Page/Login"
 import RegisterPage from "./Page/Register"
+import SetProfilePhoto from "./Page/SetProfilePhoto"
 
 
 
@@ -30,7 +31,9 @@ function App() {
 
     <Route  path="login" element={<LoginPage/>}/>
       
-    <Route path="Register"  element={<RegisterPage/>}/>
+    <Route path="register"  element={<RegisterPage/>}/>
+
+    <Route path="profile"  element={ <SetProfilePhoto/>}/>
   </Route>
 </Routes>
 </BrowserRouter>

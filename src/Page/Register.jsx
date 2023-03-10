@@ -5,7 +5,6 @@ import { useState } from "react";
 // import { collection, addDoc } from "firebase/firestore"; 
 // import { doc, setDoc } from "firebase/firestore"; 
 // import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import imageFileIcon from "/img/cameraAdd.svg"
 import { useNavigate , Link} from "react-router-dom";
 
 
