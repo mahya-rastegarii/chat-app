@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+
+
+
+*{
+    font-family: 'Noto Sans', sans-serif;
+}
+
+
+.chat-reverse{
+    @apply flex flex-row-reverse  p-3 items-start mb-1 space-x-reverse space-x-5
+}
+
+.chat-reverse P {
+    @apply bg-gray-900  max-w-lg w-auto rounded-xl rounded-tr-none p-2 mt-2 text-white 
+}
+
+
+
+
+::-webkit-scrollbar{
+
+ @apply bg-transparent w-2 rounded-sm
+}
+
+::-webkit-scrollbar-thumb{
+    @apply   bg-slate-500 rounded-full transition-all ease-in-out delay-150 hover:bg-slate-600 
+} 
+
