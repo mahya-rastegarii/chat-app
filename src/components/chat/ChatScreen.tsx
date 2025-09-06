@@ -1,35 +1,139 @@
 "use client"
+import { useEffect, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import UserImage from "../user/UserImage";
+import { useChat } from "@/context/ChatContext";
+import { useParams } from "next/navigation"
+import { createClient } from "@/utils/supabase/client"
+
+
+type Message = {
+  id: string
+  sender_id: string
+  content: string
+  created_at: string
+}
 
 const ChatScreen = () => {
 
-    const {session, loading} = useUser();
-    if (loading) return <div className="text-white">در حال بارگذاری...</div>;
+    const supabase = createClient()
+  
+    const { conversationId } = useParams() 
 
-    const username = session?.user.user_metadata.username;
-    return (
-    <div className=" bg-gray-100 overflow-y-scroll h-full ">
+    const {activeChat} = useChat();
+    const {session} = useUser();
+    const [messages, setMessages] = useState<Message[]>([])
+    const [loading, setLoading] = useState(false)
 
-        <div className=" flex space-x-5  p-3 items-start mb-1 ">
-            <div className=" w-auto">
-            <UserImage/>
-                <span className=" text-gray-900 text-sm"> Name </span>
-            </div>
-            <p className=" bg-white text-gray-900  max-w-lg w-auto rounded-xl rounded-tl-none p-2 mt-2"> Lorem ipsum dolor sit repellendus pariatur ex. Ap veniam similique quos in.</p>
-        </div>
-
-        <div className="chat-reverse">
-
-            <div className=" w-auto">
-            <UserImage username={username}/>
-                <span className=" text-slate-700 text-sm"> { username}</span>
-            </div>
-            <p className="">repellendus pariatur ex. Ap veniam similique quos in.</p>
-        </div>
-        
     
-    </div>
+
+
+
+
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true })
+
+      if (!error && data) {
+        setMessages(data as Message[])
+      }
+      setLoading(false)
+    }
+    
+    if (conversationId) fetchMessages()
+  }, [conversationId, supabase])
+
+
+  useEffect(() => {
+    if (!conversationId) return
+
+    const channel = supabase
+      .channel(`conversation-${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as Message])
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+
+  }, [conversationId, supabase])
+
+
+
+  
+
+
+  if (loading) return <div className="text-white">در حال بارگذاری...</div>
+
+  // if(messages.length === 0) return <div> no message yet</div>
+    return (
+     
+        <div className="bg-gray-100 overflow-y-scroll h-screen p-4 space-y-3">
+          {
+           (messages.length === 0) && <div className=" w-full h-full flex justify-center items-center text-gray-500/80"><span> no message yet</span></div>
+          }
+        {messages.map((msg) => {
+          const isMe = msg.sender_id === session?.user?.id
+      
+          return (
+            <div
+              key={msg.id}
+              className={`flex items-start ${
+                isMe ? "justify-end" : "justify-start"
+              }`}
+            >
+              {!isMe && (
+                <UserImage
+                  src={activeChat?.avatar_url}
+                  username={activeChat?.username}
+                />
+              )}
+      
+              <div
+                className={`max-w-xs p-2 mx-2 rounded-2xl ${
+                  isMe
+                    ? "bg-gray-800 text-white rounded-br-none ml-2"
+                    : "bg-white text-gray-900 rounded-bl-none mr-2"
+                }`}
+              >
+                <p>{msg.content}</p>
+                <span className="block text-xs opacity-50 mt-1">
+                  {new Date(msg.created_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+      
+              {isMe && (
+                <UserImage
+                  username={session?.user?.user_metadata.username}
+                />
+              )}
+            </div>
+          )
+        })}
+      
+
+      </div>
+      
     
     );
 }

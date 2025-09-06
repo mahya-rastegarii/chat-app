@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { signInAction } from "../action";
+import { signInAction } from "@/actions/auth/action";
 import { useRouter } from "next/navigation";
 
 
@@ -47,10 +47,10 @@ export type LoginFormInputs = {
         return;
       }
       
-      
+
 
       // console.log("sign-in Data is :", data)
-      router.push("/")
+      router.push("/chat")
     };
   
     

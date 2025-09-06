@@ -1,25 +1,30 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { createClient } from "@/utils/supabase/middleware";
+// middleware.ts
+import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/utils/supabase/middleware";
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+  const { session, res } = await updateSession(req);
+  const { pathname } = req.nextUrl;
 
-  
-  const supabase = createClient({ req, res });
+  // مسیرهای نیازمند لاگین
+  const protectedRoutes = ["/chat"];
 
+  // مسیرهای auth
+  const authRoutes = ["/sign-in", "/sign-up"];
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-
-  const protectedRoutes = ["/"];
-
-  if (protectedRoutes.some((path) => req.nextUrl.pathname.startsWith(path))) {
+  // کاربر لاگین نکرده → اجازه ورود به protectedRoutes نداره
+  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
     if (!session) {
-      const loginUrl = new URL("/sign-in", req.url);
-      return NextResponse.redirect(loginUrl);
+      const redirectUrl = new URL("sign-in", req.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // کاربر لاگین کرده → اجازه ورود به authRoutes نداره
+  if (authRoutes.includes(pathname)) {
+    if (session) {
+      const redirectUrl = new URL("/chat", req.url);
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
@@ -27,5 +32,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

@@ -8,7 +8,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Form from "@/components/form/Form";
 import FormButton from "@/components/form/FormButton";
-import { signUpAction } from "../action";
+import { checkProfilesAction, insertProfilesAction, signUpAction } from "@/actions/auth/action";
 import { useRouter } from "next/navigation";
 
 export type RegisterFormInputs = {
@@ -21,7 +21,6 @@ export type RegisterFormInputs = {
 
 
 const RegisterPage = () => {
-
 const router = useRouter()
 
 const schema = z.object({
@@ -53,16 +52,42 @@ const schema = z.object({
     })
 
 
-    const onSubmit = async (data: RegisterFormInputs) => {
-     const { error } = await signUpAction(data)
+  
+const onSubmit = async (data: RegisterFormInputs) => {
 
-     if(error){
-      console.log(error.message)
-     }
+  const checkProfile = await checkProfilesAction(data.username)
 
-     console.log("sign-up Data is :", data)
-     router.push("/sign-in")
-    };
+  if(checkProfile){
+    alert("username hast!");
+    return;
+  }
+
+ else {
+  const { data: signUpData, error: signUpError } = await signUpAction(data)
+
+  if (signUpError) {
+    console.log("signUpError", signUpError.message)
+    return
+  }
+
+  const userId = signUpData?.user?.id
+  if (!userId) {
+    console.log("No user returned from signUp")
+    return
+  }
+
+  const { data: insertProfileData, error: insertProfileError } =
+    await insertProfilesAction(userId, data.username)
+
+  if (insertProfileError) {
+    console.log("errorInsertProfile", insertProfileError)
+  }
+
+  console.log("insertProfileData", insertProfileData)
+  router.push("/chat")
+}
+}
+
   
 
 
