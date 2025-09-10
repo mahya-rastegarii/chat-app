@@ -1,13 +1,14 @@
 "use client"
 
-import { useChat } from '@/context/ChatContext';
+import { RootState } from '@/lib/store';
 import {BsCameraVideoFill} from 'react-icons/bs';
 import {HiUserAdd} from 'react-icons/hi';
 import {MdOutlineMoreHoriz} from 'react-icons/md';
+import { useSelector } from 'react-redux';
 
 
 const NavbarChat = () =>{
-    const {activeChat} = useChat()
+    const {activeChat} = useSelector( (state:RootState) => state.chat)
     return(
         <div className=" flex bg-gray-700  justify-between items-center px-3 h-1/6">
                 <h3 className=' font-bold text-lg text-white'> { activeChat?.username } </h3>

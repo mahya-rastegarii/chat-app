@@ -1,6 +1,5 @@
 import Chats from "@/components/sidebar/Chats";
 import Navbar from "@/components/sidebar/Navbar";
-import { SearchUserProvider } from "@/context/SearchUserContext";
 
 export default function RootLayout({
   children,
@@ -15,9 +14,8 @@ export default function RootLayout({
       <div className=" h-screen w-full bg-gray-300  overflow-hidden flex justify-center items-center shadow-md shadow-gray-200">
       <div className=" h-full relative w-1/3 bg-gradient-to-br from-gray-800 via-gray-900 to-black ">
     <div>
-        <SearchUserProvider>
+      
                   <Navbar/>
-        </SearchUserProvider>
                   <Chats/>
           </div>
           </div>

@@ -1,7 +1,4 @@
-import Chats from '@/components/sidebar/Chats';
-import Navbar from '@/components/sidebar/Navbar';
-import Search from '@/components/sidebar/Search';
-import { SearchUserProvider } from '@/context/SearchUserContext';
+
 import React from 'react'
 
 const chatPage = () => {

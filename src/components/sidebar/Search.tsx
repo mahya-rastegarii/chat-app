@@ -2,40 +2,44 @@
 
 import { createConversation, findConversation } from "@/actions/conversation/action"
 import UserImage from "../user/UserImage"
-import { useChat } from "@/context/ChatContext"
-import { useSearchUser } from "@/context/SearchUserContext"
-import { useUser } from "@/context/UserContext"
-import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/lib/store"
+import { setActiveChat } from "@/lib/slices/chatSlice"
 
 
-export type UserProfileType = {
-    id: string;
-    username: string;
-    avatar_url: string
+export type ActiveUserType = {
+  id: string;
+  username: string;
+  avatar_url: string;
+  created_at: string;
 }
-export default function Search({setQuery}:{setQuery: (query:string)  => void}) {
 
 
-  const supabase = createClient()
-  const {session} = useUser();
- 
-   const {setActiveChat} = useChat();
-  const {results} = useSearchUser();
+type SearchType = {
+setQuery: (query:string)  => void;
+results: ActiveUserType[] | null;
+}
+
+export default function Search({setQuery, results}: SearchType) {
+
+
   const router = useRouter()
 
+  const userSession = useSelector( (state: RootState) => state.user)
+  const dispatch = useDispatch<AppDispatch>();
  
   
 
-  const chatUserHandler = async(user : UserProfileType) => {
-     setActiveChat(user)
+  const chatUserHandler = async(user : ActiveUserType) => {
+     dispatch(setActiveChat(user))
 
    
-  const myId = session?.user?.id
+  const myId = userSession?.id
   if (!myId) return
 
-  
   const {data: existingConv, error}= await findConversation(myId, user.id)
+
     
   let conversationId
 

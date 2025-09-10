@@ -5,11 +5,13 @@ import UserImage from '../user/UserImage';
 import { IoMenu } from 'react-icons/io5';
 
 import { BiSearch } from 'react-icons/bi';
-import { useUser } from '@/context/UserContext';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { useSearchUser } from '@/context/SearchUserContext';
-import Search from './Search';
+import Search, { ActiveUserType } from './Search';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
+
+
 
 
 
@@ -17,8 +19,9 @@ const Navbar = () => {
    
    
 
-    const {session} = useUser();
-    const { setResults } = useSearchUser()
+  const userSession = useSelector( (state: RootState) => state.user)
+  
+    const [results, setResults] = useState<ActiveUserType[] | []>([])
      const [query, setQuery] = useState("")
     
 
@@ -36,7 +39,7 @@ const Navbar = () => {
          .from("profiles")
          .select("*")
          .ilike("username", `%${value}%`)
-         .neq("id", session?.user.id) 
+         .neq("id", userSession.id) 
    
        if (error) {
          console.error(error)
@@ -47,7 +50,7 @@ const Navbar = () => {
    
 
     
-       const username = session?.user.user_metadata.username;
+       const username = userSession?.username
 
     return (
         <div className=" flex justify-around  items-center bg-transparent px-2 py-4 h-full border-b border-gray-700">
@@ -74,7 +77,7 @@ const Navbar = () => {
                         </span>
                     
                      {
-                      query && query.length >= 3 && <Search setQuery={setQuery}/>
+                      query && query.length >= 3 && <Search setQuery={setQuery} results={results}/>
                      } 
                      
       </div>

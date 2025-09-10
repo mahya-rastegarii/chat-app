@@ -4,8 +4,8 @@ import Image from 'next/image';
 import React from 'react'
 
 export type UserType = {
-  username?: string;
-  src?: string;
+  username?: string | null;
+  src?: string | null;
 }
 
 const UserImage = ({username, src} : UserType) => {
