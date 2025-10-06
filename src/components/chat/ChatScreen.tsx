@@ -1,17 +1,25 @@
 "use client"
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import UserImage from "../user/UserImage";
 import { useParams } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import MessageMenu from "../menu/MessageMenu";
 
-type Message = {
+export type Message = {
   id: string
   sender_id: string
   content: string
   created_at: string
   read_by: string[]   // چون ستون jsonb آرایه است
+  type: "text" | "image";
+}
+
+export type MenuType = {
+  x?: number;
+   y?: number;
+  type: "desktop" | "mobile" 
 }
 
 const ChatScreen = () => {
@@ -20,6 +28,10 @@ const ChatScreen = () => {
   const { conversationId } = useParams() 
   const { activeChat } = useSelector((state: RootState) => state.chat)
   const userSession = useSelector((state: RootState) => state.user)
+
+
+  const [menu, setMenu] = useState< MenuType | null>(null)
+  let pressTimer: NodeJS.Timeout
 
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
@@ -33,7 +45,7 @@ const ChatScreen = () => {
     })
   }
 
-  // گرفتن پیام‌ها
+  
   useEffect(() => {
     const fetchMessages = async () => {
       if (!conversationId || !userSession.id) return
@@ -49,7 +61,7 @@ const ChatScreen = () => {
         const msgs = data as Message[]
         setMessages(msgs)
 
-        // 🔥 آپدیت پیام‌های نخونده
+       
         for (const msg of msgs) {
           if (!msg.read_by?.includes(userSession.id)) {
             await supabase
@@ -65,6 +77,8 @@ const ChatScreen = () => {
     }
     fetchMessages()
   }, [conversationId, supabase, userSession.id])
+
+
 
   // گوش دادن برای پیام‌های جدید
   useEffect(() => {
@@ -83,7 +97,7 @@ const ChatScreen = () => {
           const newMsg = payload.new as Message
           setMessages((prev) => [...prev, newMsg])
 
-          // 🔥 پیام جدید رو هم برای کاربر فعلی read کن
+
           if (!newMsg.read_by?.includes(userSession.id)) {
             await supabase
               .from("messages")
@@ -101,17 +115,33 @@ const ChatScreen = () => {
     }
   }, [conversationId, supabase, userSession.id])
 
-  // اسکرول به آخر
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight
-    }
+  
+  // useEffect(() => {
+  //   if (containerRef.current) {
+  //     containerRef.current.scrollTop = containerRef.current.scrollHeight
+  //   }
+  // }, [messages])
+
+ useLayoutEffect(() => {
+   if (containerRef.current) {
+    containerRef.current?.scrollTo(0, containerRef.current.scrollHeight)
+   }
   }, [messages])
+
 
   if (loading) return <div className="text-white">در حال بارگذاری...</div>
 
   return (
-    <div ref={containerRef} className="bg-gray-100 overflow-y-scroll h-screen p-4 space-y-3">
+    <div ref={containerRef} className="bg-gray-100 overflow-y-scroll h-screen p-4 space-y-3"
+    onContextMenu={(e) => {
+        e.preventDefault()
+        setMenu({ x: e.clientX, y: e.clientY, type: "desktop" })
+      }}
+      onTouchStart={() => {
+        pressTimer = setTimeout(() => setMenu({ type: "mobile" }), 500)
+      }}
+      onTouchEnd={() => clearTimeout(pressTimer)}
+      >
       {messages.length === 0 && (
         <div className=" w-full h-full flex justify-center items-center text-gray-500/80">
           <span> no message yet</span>
@@ -120,11 +150,12 @@ const ChatScreen = () => {
 
       {messages.map((msg) => {
         const isMe = msg.sender_id === userSession?.id
+  
 
         return (
           <div
             key={msg.id}
-            className={`flex items-start ${isMe ? "justify-end" : "justify-start"}`}
+            className={`flex items-start ${isMe ? "justify-end" : "justify-start"} p-2`}
           >
             {!isMe && (
               <UserImage
@@ -149,6 +180,8 @@ const ChatScreen = () => {
             {isMe && (
               <UserImage username={userSession?.username} />
             )}
+
+            <MessageMenu message={msg} setMenu={setMenu} menu={menu}/>
           </div>
         )
       })}

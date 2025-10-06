@@ -8,14 +8,17 @@ import { useSelector } from 'react-redux';
 
 
 const NavbarChat = () =>{
+
+    
     const {activeChat} = useSelector( (state:RootState) => state.chat)
+    
     return(
         <div className=" flex bg-gray-700  justify-between items-center px-3 h-1/6">
                 <h3 className=' font-bold text-lg text-white'> { activeChat?.username } </h3>
                 <div className=' flex justify-center items-center  text-white text-xl space-x-2'>
                    <BsCameraVideoFill className=' cursor-pointer hover:text-gray-100 '/>
                    <HiUserAdd className=' cursor-pointer hover:text-gray-100'/>
-                   <MdOutlineMoreHoriz className=' cursor-pointer hover:text-gray-100'/>
+                   <MdOutlineMoreHoriz className=' cursor-pointer hover:text-gray-100' onClick={() => console.log("activeCate", activeChat)}/>
 
                 </div>
         </div>

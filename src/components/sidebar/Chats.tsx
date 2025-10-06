@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from "react"
 import UserImage from "../user/UserImage"
 import { findConversation, getUserConversations } from "@/actions/conversation/action"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
+import { setActiveChat } from "@/lib/slices/chatSlice"
 
 type ProfileUserType = {
   id: string
@@ -35,6 +36,8 @@ const Chats = () => {
   const userSession = useSelector((state: RootState) => state.user)
   const userId = userSession.id
   const router = useRouter()
+  const dispatch = useDispatch()
+
   const [conversations, setConversations] = useState<ConversationType[]>([])
 
   const fetchConversations = useCallback(async () => {
@@ -77,11 +80,12 @@ const Chats = () => {
   }, [userId, fetchConversations])
 
 
-  const getConversation = async (otherId: string) => {
+  const getConversation = async (otherUser: ProfileUserType ) => {
     if (!userId) return
     try {
-      const { data, error } = await findConversation(userId, otherId)
+      const { data, error } = await findConversation(userId, otherUser.id)
       if (data) {
+        dispatch(setActiveChat(otherUser))
         router.push(`/chat/${data.id}`)
       } else {
         console.error("getConversation Error:", error)
@@ -106,7 +110,7 @@ const Chats = () => {
           <div
             key={conv.id}
             className="flex space-x-3 p-2 mt-3 hover:bg-gray-900 transition-all duration-300 cursor-pointer"
-            onClick={() => getConversation(otherUser.id)}
+            onClick={() => getConversation(otherUser)}
           >
             <UserImage
               src={otherUser?.avatar_url}

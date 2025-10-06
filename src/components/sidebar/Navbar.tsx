@@ -72,7 +72,7 @@ const Navbar = () => {
             className="bg-transparent border-0 outline-none text-white w-full placeholder:text-gray-400 focus:placeholder:text-gray-500"
              placeholder="Search User ..."
             />
-            <span className=' text-white text-xl cursor-pointer'>
+            <span className=' text-white text-xl '>
                            <BiSearch/>
                         </span>
                     
